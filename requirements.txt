@@ -1,8 +1,15 @@
-torch>=2.2
-vllm-nightly
-ctranslate2
+# ----- core inference libs (CUDA 11.x) -----
+vllm[cuda11x]          # fast Llama / Mistral backend
+ctranslate2            # Whisper / Seq2Seq GPU inference
+onnxruntime-gpu        # TTS + VAD ONNX inference
+
+# ----- runtime + utilities -----
 websockets
-jiwer
-numpy
-onnxruntime-gpu
 msgpack
+numpy
+jiwer                 # WER scoring
+sounddevice           # mic capture  (pulled in by stream_capture.py)
+
+# torch is installed separately:
+#   pip install torch==2.4.1+cu118 torchvision --extra-index-url https://download.pytorch.org/whl/cu118
+
