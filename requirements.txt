@@ -1,0 +1,8 @@
+torch>=2.2
+vllm-nightly
+ctranslate2
+websockets
+jiwer
+numpy
+onnxruntime-gpu
+msgpack

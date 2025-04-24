@@ -1,0 +1,69 @@
+--- tts_service.py
++++ tts_service.py
+@@
+-import onnxruntime as ort
+-import websockets
++import onnxruntime as ort
++import websockets
++import tensorrt as trt
++import pycuda.driver as cuda
+@@
+-        self.executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
+-        self.processing_queue = deque()
+-        self.acoustic_session = None
+-        self.vocoder_session = None
++        self.executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
++        self.processing_queue = deque()
++        self.acoustic_session = None
++        self.vocoder_engine = None
++        self.vocoder_ctx = None
++        self.bindings = None
++        self.output_buf = None
++        self.cuda_stream = None
+@@
+-        print("Loading acoustic model...")
++        print("Loading acoustic model...")
+         self.acoustic_session = ort.InferenceSession(ACOUSTIC_MODEL_PATH)
+-        print("Loading vocoder model...")
+-        self.vocoder_session = ort.InferenceSession(VOCODER_MODEL_PATH)
++        print("Loading TensorRT vocoder...")
++        runtime = trt.Runtime(TRT_LOGGER)
++        with open(VOCODER_TRT_PATH,'rb') as f:
++            engine_data = f.read()
++        self.vocoder_engine = runtime.deserialize_cuda_engine(engine_data)
++        self.vocoder_ctx = self.vocoder_engine.create_execution_context()
++        self.cuda_stream = cuda.Stream()
++        # allocate bindings
++        self.bindings=[]
++        for idx in range(self.vocoder_engine.num_bindings):
++            shape=self.vocoder_engine.get_binding_shape(idx)
++            dtype=trt.nptype(self.vocoder_engine.get_binding_dtype(idx))
++            size=trt.volume(shape)*dtype().itemsize
++            buf=cuda.mem_alloc(size)
++            self.bindings.append(int(buf))
++            if self.vocoder_engine.binding_is_input(idx):
++                self.in_shape,self.in_dtype=shape,dtype
++            else:
++                self.out_shape,self.out_dtype=shape,dtype
++                self.output_buf=buf
+@@
+-        # Process through vocoder
+-        audio = self.vocoder_session.run(None, { "input": acoustic_output })[0]
++        audio = self._trt_vocode(acoustic_output)
+@@
+-        return audio.tobytes()
++        return audio.tobytes()
++
++    def _trt_vocode(self, mel):
++        total=mels=mel.shape[1]
++        hop=256
++        out=[]
++        for i in range(0,total,hop):
++            chunk=mel[:,i:i+hop,:].astype(self.in_dtype)
++            cuda.memcpy_htod_async(self.bindings[0], chunk, self.cuda_stream)
++            self.vocoder_ctx.execute_async_v2(self.bindings, self.cuda_stream.handle)
++            out_chunk=np.empty(self.out_shape,dtype=self.out_dtype)
++            cuda.memcpy_dtoh_async(out_chunk, self.output_buf, self.cuda_stream)
++            self.cuda_stream.synchronize()
++            out.append(out_chunk)
++        return np.concatenate(out,axis=-1)

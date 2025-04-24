@@ -1,0 +1,9 @@
+full_project_bundle/
+    modules/
+        stream_capture.py
+        batched_vad.py
+    scripts/
+        build_trt_vocoder.sh
+    patches/
+        tts_service_trt.diff
+        ws_server_msgpack.diff
