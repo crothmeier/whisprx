@@ -1,0 +1,27 @@
+ctranslate2
+ctranslate2            # Whisper / Seq2Seq GPU inference
+ctranslate2==4.1.0
+jiwer
+jiwer                 # WER scoring
+librosa
+msgpack
+numpy
+onnxruntime-gpu
+onnxruntime-gpu        # TTS + VAD ONNX inference
+onnxruntime-gpu==1.18.0
+opentelemetry-sdk==1.25.0
+piper-tts==1.2.0
+pycuda                 # CUDA Python bindings
+pyzmq==26.0.2
+sounddevice           # mic capture
+sounddevice           # mic capture  (pulled in by stream_capture.py)
+soundfile
+tensorrt               # TensorRT for vocoder optimization
+torch==2.2.1+cu121 --extra-index-url https://download.pytorch.org/whl/cu121
+torch>=2.2
+torchaudio==2.2.1+cu121 --extra-index-url https://download.pytorch.org/whl/cu121
+vllm-nightly
+vllm>=0.4.0
+vllm[cuda11x]          # fast Llama / Mistral backend
+websockets
+websockets==12.0

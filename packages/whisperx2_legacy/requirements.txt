@@ -1,0 +1,16 @@
+# ----- core inference libs (CUDA 11.x) -----
+vllm[cuda11x]          # fast Llama / Mistral backend
+ctranslate2            # Whisper / Seq2Seq GPU inference
+onnxruntime-gpu        # TTS + VAD ONNX inference
+tensorrt               # TensorRT for vocoder optimization
+pycuda                 # CUDA Python bindings
+
+# ----- runtime + utilities -----
+websockets
+msgpack
+numpy
+jiwer                 # WER scoring
+sounddevice           # mic capture
+
+# torch is installed separately:
+#   pip install torch==2.4.1+cu118 torchvision --extra-index-url https://download.pytorch.org/whl/cu118

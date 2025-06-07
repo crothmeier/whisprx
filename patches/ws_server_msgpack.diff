@@ -1,0 +1,11 @@
+--- ws_server.py
++++ ws_server.py
+@@
+-import json
++import json, msgpack
+@@
+-    await websocket.send(json.dumps(data))
++    await websocket.send(msgpack.packb(data, use_bin_type=True))
+@@
+-    data = json.loads(message)
++    data = msgpack.unpackb(message)

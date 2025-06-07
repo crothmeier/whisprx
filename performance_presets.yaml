@@ -1,0 +1,11 @@
+presets:
+  ultra_low_latency:
+    buffer_size_ms: 80
+    chunk_size: 1024
+    overlap: 128
+  balanced:
+    buffer_size_ms: 100
+    chunk_size: 2048
+    overlap: 256
+acceleration:
+  use_torch_tensorrt: false

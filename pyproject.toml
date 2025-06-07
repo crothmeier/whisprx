@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=65", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "whisprx"
+version = "0.1.0"
+authors = [
+  { name = "WhispRX Contributors", email = "info@example.com" }
+]
+description = "Low-latency conversational AI system combining Whisper, vLLM, and TTS."
+readme = "README.md"
+requires-python = ">=3.11"
+
+dependencies = [
+  "fastapi",
+  "uvicorn[standard]",
+  "websockets",
+  "msgpack>=1.0",
+  "vllm",
+  "ctranslate2",
+  "onnxruntime-gpu",
+  "numpy",
+  "torch",
+  "sounddevice",
+  "numba",
+]
+
+[tool.setuptools.package-dir]
+
+[tool.setuptools.packages.find]
+where = ["packages"]
