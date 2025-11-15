@@ -36,6 +36,7 @@ pyzmq>=26.0.0               # ZeroMQ bindings
 
 # Optional: Performance & Monitoring
 opentelemetry-sdk>=1.25.0   # Telemetry and tracing
+prometheus-client>=0.19.0   # Prometheus metrics (optional)
 
 # Optional: CUDA utilities
 pycuda>=2024.1              # Direct CUDA access (for advanced optimizations)
