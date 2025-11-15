@@ -1,27 +1,46 @@
-ctranslate2
-ctranslate2            # Whisper / Seq2Seq GPU inference
-ctranslate2==4.1.0
-jiwer
-jiwer                 # WER scoring
-librosa
-msgpack
-numpy
-onnxruntime-gpu
-onnxruntime-gpu        # TTS + VAD ONNX inference
-onnxruntime-gpu==1.18.0
-opentelemetry-sdk==1.25.0
-piper-tts==1.2.0
-pycuda                 # CUDA Python bindings
-pyzmq==26.0.2
-sounddevice           # mic capture
-sounddevice           # mic capture  (pulled in by stream_capture.py)
-soundfile
-tensorrt               # TensorRT for vocoder optimization
+# WhispRX Dependencies
+# Python 3.11+ required
+
+# Core ML frameworks
 torch==2.2.1+cu121 --extra-index-url https://download.pytorch.org/whl/cu121
-torch>=2.2
 torchaudio==2.2.1+cu121 --extra-index-url https://download.pytorch.org/whl/cu121
-vllm-nightly
-vllm>=0.4.0
-vllm[cuda11x]          # fast Llama / Mistral backend
-websockets
-websockets==12.0
+
+# Speech-to-Text (Whisper)
+faster-whisper>=1.0.0       # Fast Whisper inference with CTranslate2
+ctranslate2>=4.1.0          # Optimized transformer inference
+
+# Large Language Model (vLLM)
+vllm>=0.4.0                 # Fast LLM inference with CUDA
+
+# Text-to-Speech
+# Note: Piper is installed separately as a binary
+# See: https://github.com/rhasspy/piper
+
+# Voice Activity Detection & Audio
+onnxruntime-gpu>=1.18.0     # ONNX Runtime with CUDA for VAD
+sounddevice>=0.4.6          # Microphone capture
+soundfile>=0.12.1           # Audio file I/O
+numpy>=1.24.0               # Numerical computing
+
+# Web & Communication
+fastapi>=0.110.0            # Web server framework
+uvicorn[standard]>=0.27.0   # ASGI server
+websockets>=12.0            # WebSocket client/server
+msgpack>=1.0.7              # Binary serialization protocol
+python-multipart>=0.0.9     # File upload support
+
+# Utilities
+librosa>=0.10.0             # Audio processing utilities
+jiwer>=3.0.0                # WER scoring for evaluation
+pyzmq>=26.0.0               # ZeroMQ bindings
+
+# Optional: Performance & Monitoring
+opentelemetry-sdk>=1.25.0   # Telemetry and tracing
+
+# Optional: CUDA utilities
+pycuda>=2024.1              # Direct CUDA access (for advanced optimizations)
+
+# Development tools (optional)
+pytest>=8.0.0               # Testing framework
+ruff>=0.3.0                 # Linting
+black>=24.0.0               # Code formatting
