@@ -36,6 +36,7 @@ class AsyncPipeline:
         self.q_stt:   asyncio.Queue = asyncio.Queue(maxsize=10)
         self.q_llm:   asyncio.Queue = asyncio.Queue(maxsize=10)
         self.q_tts:   asyncio.Queue = asyncio.Queue(maxsize=10)
+        self.q_audio_out: asyncio.Queue = asyncio.Queue(maxsize=10)  # TTS audio output
 
         # pinned host buffer for 2 s@16 kHz mono
         self.pcm_buf = torch.empty(32_000, dtype=torch.float32).pin_memory()
@@ -214,10 +215,13 @@ class AsyncPipeline:
                         )
 
                         if audio_bytes:
-                            # For now, just print that we generated audio
-                            # In the WebSocket server, this will be sent to the client
                             print(f"[TTS] Generated {len(audio_bytes)} bytes of audio")
-                            # TODO: Send to WebSocket client or audio output queue
+                            # Push audio to output queue for WebSocket streaming
+                            await self.q_audio_out.put({
+                                "type": "audio",
+                                "data": audio_bytes,
+                                "text": text,
+                            })
                         else:
                             print("[TTS] No audio generated")
                     else:

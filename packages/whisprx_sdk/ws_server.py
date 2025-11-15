@@ -150,11 +150,29 @@ class MessagePackConnection:
         """Send outgoing messages from pipeline"""
         try:
             while self._running:
-                # Get audio output from pipeline
-                # For now, we'll poll the TTS queue
-                # In the future, we could add an output queue to the pipeline
+                # Get audio output from pipeline output queue
+                if self.pipeline and hasattr(self.pipeline, 'q_audio_out'):
+                    try:
+                        # Wait for audio output with timeout
+                        output = await asyncio.wait_for(
+                            self.pipeline.q_audio_out.get(),
+                            timeout=0.1
+                        )
 
-                await asyncio.sleep(0.1)  # Prevent tight loop
+                        # Send audio to client
+                        await self.send_message({
+                            "type": "audio",
+                            "data": output["data"],
+                            "text": output.get("text", "")
+                        })
+
+                        print(f"[Session {self.session_id}] Sent {len(output['data'])} bytes of audio")
+
+                    except asyncio.TimeoutError:
+                        # No audio ready, continue
+                        pass
+                else:
+                    await asyncio.sleep(0.1)  # Prevent tight loop
 
         except Exception as e:
             print(f"[Session {self.session_id}] Send error: {e}")
