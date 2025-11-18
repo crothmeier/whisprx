@@ -1,10 +1,165 @@
+# WhispRX Helm Chart Values
+# Production-ready configuration with GPU support
+
+# Container image configuration
 image:
   repository: ghcr.io/yourorg/whisprx_api
   tag: latest
   pullPolicy: IfNotPresent
 
+# Number of replicas
+replicaCount: 1
+
+# Service configuration
 service:
   type: ClusterIP
   port: 80
+  targetPort: 8000
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: "/metrics"
+    prometheus.io/port: "8000"
 
-resources: {}
+# Ingress configuration
+ingress:
+  enabled: false
+  className: nginx
+  annotations: {}
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: whisprx.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+    # - secretName: whisprx-tls
+    #   hosts:
+    #     - whisprx.example.com
+
+# Resource limits and requests
+resources:
+  limits:
+    nvidia.com/gpu: 1        # Request 1 GPU
+    memory: 16Gi             # 16GB RAM for models
+    cpu: 4000m               # 4 CPU cores
+  requests:
+    nvidia.com/gpu: 1
+    memory: 12Gi             # Minimum 12GB
+    cpu: 2000m               # Minimum 2 cores
+
+# Node selector for GPU nodes
+nodeSelector:
+  nvidia.com/gpu.product: "NVIDIA-A100-SXM4-40GB"  # Optional: specific GPU
+  # Or just select any GPU node:
+  # accelerator: nvidia-gpu
+
+# Tolerations for GPU nodes
+tolerations:
+  - key: nvidia.com/gpu
+    operator: Exists
+    effect: NoSchedule
+
+# Affinity rules
+affinity:
+  # Prefer nodes with GPUs
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        preference:
+          matchExpressions:
+            - key: nvidia.com/gpu
+              operator: Exists
+
+# Pod security context
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+# Container security context
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false  # Models need to be loaded
+
+# Liveness probe
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 8000
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# Readiness probe
+readinessProbe:
+  httpGet:
+    path: /health/detailed
+    port: 8000
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# Startup probe (for slow model loading)
+startupProbe:
+  httpGet:
+    path: /health
+    port: 8000
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 30  # Allow up to 5 minutes for startup
+
+# Environment variables
+env:
+  - name: WHISPER_MODEL_PATH
+    value: "base"
+  - name: LLM_MODEL_NAME
+    value: "microsoft/Phi-3-mini-4k-instruct"
+  - name: TTS_MODEL_PATH
+    value: "/models/tts/piper/model.onnx"
+  - name: CUDA_VISIBLE_DEVICES
+    value: "0"
+  - name: PYTHONUNBUFFERED
+    value: "1"
+
+# Persistent volumes for models
+persistence:
+  enabled: true
+  storageClass: ""  # Use default storage class
+  accessMode: ReadWriteOnce
+  size: 50Gi
+  mountPath: /models
+  annotations: {}
+
+# Horizontal Pod Autoscaler
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+# Service Monitor for Prometheus Operator
+serviceMonitor:
+  enabled: false
+  interval: 30s
+  scrapeTimeout: 10s
+  labels: {}
+
+# Pod disruption budget
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+
+# Additional labels
+labels: {}
+
+# Additional annotations
+annotations: {}
